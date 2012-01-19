@@ -1,0 +1,25 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+        "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+    <title>LinkChecker example</title>
+</head>
+<body>
+
+<ul>
+    <li><a href="broke.html">broke</a></li>
+    <li><a href="http://localhost:82/works.html">works</a></li>
+    <li><a href="blah.html">broke</a></li>
+    <li><a href="found.html">works</a></li>
+    <li><a href="found.html">works 2</a></li>
+    <li><a href="http://www.google.com/">google</a></li>
+</ul>
+
+<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js"></script>
+<script type="text/javascript" src="LinkChecker.js"></script>
+<script type="text/javascript">
+    $("a:broken").css("color", "red");
+</script>
+
+</body>
+</html>
