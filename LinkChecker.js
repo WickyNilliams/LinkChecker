@@ -112,7 +112,7 @@ linkChecker.UI = (function($) {
         addStyles();
         drawUI();
         wireEvents();
-    })
+    });
 
 })(jQuery);
 
