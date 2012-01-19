@@ -6,6 +6,8 @@ var linkChecker = {
 //utility methods for dealing with URLs
 linkChecker.checker = (function() {
 
+    // makes AJAX request to url
+    //return false if 404, true otherwise
     function uriExists ( url ) {
         var http = new XMLHttpRequest();
         http.open('HEAD', url, false);
@@ -13,6 +15,8 @@ linkChecker.checker = (function() {
         return http.status !== 404;
     }
 
+    //checks whether a uri is local or not
+    //basically whether it conforms same-origin policy
     function isLocal ( uri ) {
         var domain = window.location.host.toLowerCase(),
             externalPattern = new RegExp("^http://(?!" + domain + ")", "i");
@@ -21,6 +25,8 @@ linkChecker.checker = (function() {
         return !isExternal;
     }
 
+    //given an element returns it's URI
+    //returns empty string if no URI available
     function getUri ( elem ) {
         var uri;
         switch (elem.tagName.toLowerCase()) {
@@ -45,10 +51,11 @@ linkChecker.checker = (function() {
 })(jQuery);
 
 
-//handles the UI
+//handles the UI portion of the link checker
 linkChecker.UI = (function($) {
     var $container;
 
+    //handler for link checked event
     function linkChecked(e, broken) {
         var $result = $("<li></li>"),
             uri = linkChecker.checker.getUri(this);
@@ -63,6 +70,7 @@ linkChecker.UI = (function($) {
         $container.append($result);
     }
 
+    //handler for link check complete event
     function complete(e, total, broken) {
         var totalResult = $("<p></p>"),
             brokenResults = $("<p></p>");
@@ -74,11 +82,13 @@ linkChecker.UI = (function($) {
         $container.parent().append(brokenResults);
     }
 
-    function wireEvents() {
+    //wires up listeners for events
+    function wireUp() {
         $(document).on(linkChecker.checkedEvent, "a, img", linkChecked);
         $(document).on(linkChecker.completeEvent, null, complete);
     }
 
+    //response for drawing initial UI
     function drawUI () {
         var ui = $("<div></div>").attr("id", "linkChecker");
         ui.append("<h1>Link Checker</h1>");
@@ -87,6 +97,8 @@ linkChecker.UI = (function($) {
         $container.appendTo("body");
     }
 
+    //adds any styles required for
+    //prettying up the UI
     function addStyles() {
         var head = document.getElementsByTagName('head')[0],
             style = document.createElement('style'),
@@ -108,14 +120,16 @@ linkChecker.UI = (function($) {
         head.appendChild(style);
     }
 
+    //what to do when document is ready
     $(function() {
         addStyles();
         drawUI();
-        wireEvents();
+        wireUp();
     });
 
 })(jQuery);
 
+//kicks everything off
 linkChecker.init = function (selector) {
     var $links = $(selector),
         progress = [],
@@ -150,17 +164,18 @@ linkChecker.init = function (selector) {
     $(document).trigger(linkChecker.completeEvent, [numLinks, numBroken]);
 };
 
-//(function ($) {
-//    $.expr[":"].broken = function( obj, index, meta, stack ){
-//        var $this = $(obj),
-//            uri = linkChecker.checker.getUri(obj);
-//
-//            return uri // has a uri
-//                && linkChecker.checker.isLocal(uri) // does not break same domain policy
-//                && !linkChecker.checker.uriExists(uri); // and returns 404
-//
-//    };
-//})(jQuery);
+//custom jquery selector for filtering broken links
+(function ($) {
+    $.expr[":"].broken = function( obj, index, meta, stack ){
+        var $this = $(obj),
+            uri = linkChecker.checker.getUri(obj);
+
+            return uri // has a uri
+                && linkChecker.checker.isLocal(uri) // does not violate same-origin policy
+                && !linkChecker.checker.uriExists(uri); // and returns 404
+
+    };
+})(jQuery);
 
 $(function() {
     linkChecker.init("a");
