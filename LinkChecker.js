@@ -1,17 +1,24 @@
 (function( $ ) {
 
-    //utility methods
+    /**
+     * Utility methods
+     */
     var checker = {
 
-        //events we're exposing
+        /**
+         * The events we're exposing
+         */
         events : {
-            started : "started.linkchecker",
-            checked : "checked.linkchecker",
-            completed : "completed.linkchecker"
+            started : "started.linkChecker",
+            checked : "checked.linkChecker",
+            completed : "completed.linkChecker"
         },
 
-        // makes AJAX request to url
-        //return false if 404, true otherwise
+        /**
+         * makes AJAX request to url
+         * return false if 404, true otherwise
+         * @param url
+         */
         uriExists : function ( url ) {
             var http = new XMLHttpRequest();
             http.open('HEAD', url, false);
@@ -19,8 +26,11 @@
             return http.status !== 404;
         },
 
-        //checks whether a uri is local or not
-        //basically whether it conforms same-origin policy
+        /**
+         * checks whether a uri is local or not
+         * basically whether it conforms same-origin policy
+         * @param uri
+         */
         isLocal : function ( uri ) {
             var domain = window.location.host.toLowerCase(),
                 externalPattern = new RegExp("^http://(?!" + domain + ")", "i");
@@ -29,8 +39,11 @@
             return !isExternal;
         },
 
-        //given an element returns it's URI
-        //returns empty string if no URI available
+        /**
+         * given an element returns it's URI
+         * returns empty string if no URI available
+         * @param elem
+         */
         getUri : function ( elem ) {
             var uri;
             switch (elem.tagName.toLowerCase()) {
@@ -48,7 +61,9 @@
 
     };
 
-    //the main plugin
+    /**
+     * The main linkChecker plugin
+     */
     $.fn.linkChecker = function() {
 
         var progress = [],
@@ -92,10 +107,12 @@
 
     };
 
-    //custom jquery selector for filtering broken links
-    $.expr[":"].broken = function( obj, index, meta, stack ){
-        var $this = $(obj),
-            uri = checker.getUri(obj);
+    /**
+     * custom jquery selector for filtering broken links
+     * @param obj
+     */
+    $.expr[":"].broken = function( obj ){
+        var uri = checker.getUri(obj);
 
             return uri // has a uri
                 && checker.isLocal(uri) // does not violate same-origin policy
@@ -114,7 +131,11 @@
     var $container,
         checker = $.linkChecker;
 
-    //handler for link checked event
+    /**
+     * handler for link checked event
+     * @param e
+     * @param broken
+     */
     function checkedEvent(e, broken) {
         var $result = $("<li></li>"),
             uri = checker.getUri(this);
@@ -129,7 +150,12 @@
         $container.append($result);
     }
 
-    //handler for link check complete event
+    /**
+     * handler for link check complete event
+     * @param e
+     * @param total
+     * @param broken
+     */
     function completedEvent(e, total, broken) {
         var totalResult = $("<p></p>"),
             brokenResults = $("<p></p>");
@@ -141,21 +167,29 @@
         $container.parent().append(brokenResults);
     }
 
-    //draws UI when it's time to start the show
+    /**
+     * draws UI when it's time to start the show
+     * @param e
+     * @param links
+     */
     function startedEvent(e, links) {
         addStyles();
         drawUI();
     }
 
-    //wires up listeners for events
+    /**
+     * wires up listeners for events
+     */
     function wireUp() {
         var selector = "a, img";
-        $(document).on(checker.events.started, null, startedEvent)
+        $(document).on(checker.events.started, null, startedEvent);
         $(document).on(checker.events.checked, selector, checkedEvent);
         $(document).on(checker.events.completed, null, completedEvent);
     }
 
-    //responsible for setting up the UI
+    /**
+     * responsible for setting up the UI
+     */
     function drawUI () {
         var ui = $("<div></div>").attr("id", "linkChecker");
         ui.append("<h1>Link Checker</h1>");
@@ -164,7 +198,9 @@
         $container.appendTo("body");
     }
 
-    //adds any styles required for prettying up the UI
+    /**
+     * adds any styles required for prettying up the UI
+     */
     function addStyles() {
         var head = document.getElementsByTagName('head')[0],
             style = document.createElement('style'),
@@ -186,14 +222,19 @@
         head.appendChild(style);
     }
 
-    //what to do when document is ready
+    /**
+     * ensure event handlers wired up
+     * for when the document is ready
+     */
     $(function() {
         wireUp();
     });
 
 })(jQuery);
 
-
+/**
+ * kick it all off
+ */
 $(function() {
     $("a").linkChecker();
 });
