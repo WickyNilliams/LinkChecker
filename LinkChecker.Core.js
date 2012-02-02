@@ -1,4 +1,4 @@
-(function( $ ) {
+(function( $, win, doc ) {
 
     /**
      * Utility methods
@@ -86,6 +86,7 @@
             }
 
             //flag uri as previously processed
+            //TODO: store more data about links checked to pass on completed event
             progress[uri] = true;
             numLinks++;
 
@@ -123,118 +124,4 @@
     //expose our utility methods
     $.linkChecker = checker;
 
-})( jQuery );
-
-
-//handles the UI elements of the link checker
-(function($) {
-    var $container,
-        checker = $.linkChecker;
-
-    /**
-     * handler for link checked event
-     * @param e
-     * @param broken
-     */
-    function checkedEvent(e, broken) {
-        var $result = $("<li></li>"),
-            uri = checker.getUri(this);
-
-        if(broken) {
-            $result.text(uri + " - broke!");
-            $(this).css("color", "red");
-        }
-        else {
-            $result.text(uri + " - OK!");
-        }
-        $container.append($result);
-    }
-
-    /**
-     * handler for link check complete event
-     * @param e
-     * @param total
-     * @param broken
-     */
-    function completedEvent(e, total, broken) {
-        var totalResult = $("<p></p>"),
-            brokenResults = $("<p></p>");
-
-        totalResult.text("total unique local links: " + total);
-        brokenResults.text("total broken links: " + broken);
-
-        $container.parent().append(totalResult);
-        $container.parent().append(brokenResults);
-    }
-
-    /**
-     * draws UI when it's time to start the show
-     * @param e
-     * @param links
-     */
-    function startedEvent(e, links) {
-        addStyles();
-        drawUI();
-    }
-
-    /**
-     * wires up listeners for events
-     */
-    function wireUp() {
-        var selector = "a, img";
-        $(document).on(checker.events.started, null, startedEvent);
-        $(document).on(checker.events.checked, selector, checkedEvent);
-        $(document).on(checker.events.completed, null, completedEvent);
-    }
-
-    /**
-     * responsible for setting up the UI
-     */
-    function drawUI () {
-        var ui = $("<div></div>").attr("id", "linkChecker");
-        ui.append("<h1>Link Checker</h1>");
-
-        $container = ui.append("<ul></ul>");
-        $container.appendTo("body");
-    }
-
-    /**
-     * adds any styles required for prettying up the UI
-     */
-    function addStyles() {
-        var head = document.getElementsByTagName('head')[0],
-            style = document.createElement('style'),
-            rules,
-            styleRules = "h1 { color: #f00}";
-
-        styleRules += "p { font-weight: bold; }";
-        
-        rules = document.createTextNode(styleRules);
-
-        style.type = 'text/css';
-        if(style.styleSheet) {
-            style.styleSheet.cssText = rules.nodeValue;
-        }
-        else {
-            style.appendChild(rules);
-        }
-
-        head.appendChild(style);
-    }
-
-    /**
-     * ensure event handlers wired up
-     * for when the document is ready
-     */
-    $(function() {
-        wireUp();
-    });
-
-})(jQuery);
-
-/**
- * kick it all off
- */
-$(function() {
-    $("a").linkChecker();
-});
+})( jQuery, window, document );
