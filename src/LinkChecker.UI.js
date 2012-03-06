@@ -2,101 +2,39 @@
 //handles the UI elements of the link checker
 (function($, win, doc ) {
     var $container,
-        checker = $.linkChecker,
-        lnf = {},
-        backupLnf =    {
-            "body" : {
-                "font-family" : "sans-serif"
-            },
-            "#linkChecker" : {
-                background: "none repeat scroll 0 0 lightBlue",
-                padding: "10px",
-                position: "fixed",
-                right: "14px",
-                top: "20%"
-            },
-            "#linkChecker > ul" : {
-                "list-style" : "none",
-                padding : "0",
-                margin : "0"
-            },
-            "#linkChecker > ul li" : {
-                color: "white",
-                padding: "5px 10px",
-                "border-top" : "solid 1px white",
-                "border-bottom" : "solid 1px gray",
-                "font-weight" : "bold"
-            },
-            "#linkChecker li.ok" : {
-                "background" : "green"
-            },
-            "#linkChecker li.broken" : {
-                "background" : "red"
-            },
-            "h1" : {
-                color : "red"
-            }
-        };
+        lnf = {};
 
     /**
      * handler for link checked event
      * @param {Event} e The event
-     * @param {boolean} broken whether the checked link was broken
+     * @param {LinkChecker.Link} link the Checker object for the current element
      * @this {Element} the element on which the event was triggered
      */
-    function checkedEvent(e, broken) {
-        var $result = $("<li></li>"),
-            uri = checker.getUri(this),
-            $wrapper = $container.children("ul");
+    function checkedEvent(link) {
 
-        if(broken) {
-            $result.text(uri).addClass("broken");
-            $(this).css("color", "red");
-        }
-        else {
-            $result.text(uri).addClass("ok");
-            $(this).css("color", "lime");
-        }
+        var $result = $("<li></li>"),
+            $wrapper = $container.children("ul"),
+            cssClass = link.isBroken() ? "broken" : "ok";
+
+        $result.text(link.uri).addClass(cssClass);
         $wrapper.append($result);
     }
 
     /**
      * handler for link check complete event
-     * @param {Event} e The event
-     * @param {int} total The Total
-     * @param {boolean} broken whether the checked link was broken
-     * @this {Element} the element on which the event was triggered
+     * @param {LinkChecker.Link[]} results The event
      */
-    function completedEvent(e, total, broken) {
-        var totalResult = $("<p></p>"),
-            brokenResults = $("<p></p>");
-
-        totalResult.text("total unique local links: " + total);
-        brokenResults.text("total broken links: " + broken);
-
-        $container.parent()
-                .append(totalResult)
-                .append(brokenResults);
+    function completedEvent(results) {
+        $("<p></p>").text("total unique local links: " + results.length)
+                    .appendTo($container.parent());
     }
 
     /**
      * draws UI when it's time to start the show
-     * @param {Event} e the event
-     * @param {Element[]} links an array of all links selected
      */
-    function startedEvent(e, links) {
+    function startedEvent() {
         addStyles();
         drawUI();
-    }
-
-    /**
-     * wires up listeners for events
-     */
-    function wireUp() {
-        var selector = "a, img";
-        $(doc).on(checker.events.started, startedEvent);
-        $(doc).on(checker.events.checked, selector, checkedEvent);
-        $(doc).on(checker.events.completed, completedEvent);
     }
 
     /**
@@ -178,7 +116,13 @@
      * for when the document is ready
      */
     $(function() {
-        wireUp();
+        var processor = new LinkChecker.LinkProcessor(document.getElementsByTagName("a"));
+
+        processor.on(LinkChecker.events.started, startedEvent);
+        processor.on(LinkChecker.events.checked, checkedEvent);
+        processor.on(LinkChecker.events.completed, completedEvent);
+        
+        processor.go();
     });
 
 })(jQuery, window, document);
