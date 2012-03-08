@@ -5,69 +5,131 @@
     <title>LinkChecker example</title>
 
     <style type="text/css">
-        body {
-             font-family: sans-serif;
-        }
 
-        #linkChecker {
-             border-radius: 3px 3px 3px 3px;
-             padding: 0px;
-             position: fixed;
-             right: 14px;
-             top: 20%;
-        }
+        /*#linkChecker {*/
+            /*font-family: sans-serif !important;*/
+            /*background : rgba(32,32,32,0.9);*/
+            /*padding: 0;*/
+            /*position: fixed;*/
+            /*top: 0;*/
+            /*right:0;*/
+            /*left: 0;*/
+            /*height: 50px;*/
+            /*font-size: 12px;*/
+            /*color: #fff;*/
+            /*z-index: 99999;*/
+        /*}*/
 
-        #linkChecker h1 {
-            background: rgba(0,0,0,0.5);
-            border-radius: 5px 5px 0px 0px;
-            color: #565656;
-            margin: 0pt;
-            padding: 5px;
-            text-align: center;
-            text-shadow: 0px 0px 2px #FFFFFF;
-        }
+        /*#linkChecker .module {*/
+            /*float: left;*/
+            /*margin: 10px 0 10px 20px;*/
+        /*}*/
 
-        #linkChecker li {
-             box-shadow: 0px 1px 2px rgba(255, 255, 255, 0.5) inset, 0px 0px 2px rgba(0, 0, 0, 0.5) inset;
-        }
+        /*#linkChecker h1 {*/
+            /*font-size: 16px;*/
+            /*font-weight: bold;*/
+            /*line-height:30px;*/
+            /*color: #fff;*/
+            /*text-shadow: 1px 1px 0 #6E538A, 2px 2px 0 #6E538A, 3px 3px 0 #6E538A;*/
+            /*padding-right: 20px;*/
+            /*border-right: 1px solid #fff;*/
+        /*}*/
 
-        #linkChecker > ul {
-             height: 150px;
-             list-style: none outside none;
-             margin: 0;
-             overflow: auto;
-             padding: 0 5px;
-        }
+        /*#linkChecker .progress-bar {*/
+            /*float: left;*/
+            /*height: 17px;*/
+            /*border: 1px solid #fff;*/
+            /*padding: 2px;*/
+            /*width: 100px;*/
+            /*margin: 4px 10px 0 0;*/
+        /*}*/
 
-        #linkChecker > ul li {
-             border-bottom: 1px solid gray;
-             border-top: 1px solid white;
-             color: white;
-             font-weight: bold;
-             padding: 5px 10px;
-        }
+        /*#linkChecker .progress-bar .progress {*/
+            /*background: #6E538A;*/
+            /*height: 100%;*/
+        /*}*/
 
-        #linkChecker li.ok {
-             background: none repeat scroll 0 0 green;
-        }
+        /*#linkChecker .complete {*/
+            /*font-size: 16px;*/
+            /*font-weight: bold;*/
+            /*line-height:30px;*/
+        /*}*/
 
-        #linkChecker li.broken {
-             background: none repeat scroll 0 0 red;
-        }
+        /*#linkChecker .total {*/
+            /*font-size: 12px;*/
+            /*color: #6E538A;*/
+            /*line-height:30px;*/
+        /*}*/
 
-        a.highlight {
-            background-color: yellow;
-        }
+        /*#linkChecker .total:before {*/
+            /*content: '/';*/
+            /*padding:0 5px;*/
+        /*}*/
 
-        h1 {
-             color: red;
-        }
+        /*#linkChecker .broken {*/
+            /*padding:0 10px;*/
+        /*}*/
+        /*#linkChecker .broken:hover {*/
+            /*background: #222;*/
+        /*}*/
+
+        /*#linkChecker .broken span {*/
+            /*line-height: 30px;*/
+            /*display: inline-block;*/
+            /*color: #6E538A;*/
+            /*font-weight: bold;*/
+        /*}*/
+        /*#linkChecker .broken:hover span {*/
+            /*color: #fff;*/
+        /*}*/
+
+        /*#linkChecker .broken .tally {*/
+            /*color: #fff;*/
+            /*margin-left: 5px;*/
+        /*}*/
+
+        /*#linkChecker .broken ul {*/
+            /*padding: 10px 0;*/
+            /*margin: 0;*/
+            /*list-style: none;*/
+            /*display: none;*/
+        /*}*/
+
+
+        /*#linkChecker .broken:hover ul {*/
+            /*display: block;*/
+        /*}*/
+
+        /*#linkChecker .broken ul li {*/
+             /*border-top: 1px solid #6E538A;*/
+             /*padding: 5px;*/
+        /*}*/
+
+        /*a.broken-link {*/
+            /*background-color: red;*/
+            /*color: white;*/
+            /*border: solid 2px red;*/
+        /*}*/
+
 
     </style>
 </head>
 <body>
 
+
 <ul>
+    <li><a href="broke.html">broke</a></li>
+    <li><a href="http://localhost:82/works.html">works</a></li>
+    <li><a href="blah.html">broke</a></li>
+    <li><a href="found.html">works</a></li>
+    <li><a href="found.html">works 2</a></li>
+    <li><a href="http://www.google.com/">google</a></li>
+    <li><a href="broke.html">broke</a></li>
+    <li><a href="http://localhost:82/works.html">works</a></li>
+    <li><a href="blah.html">broke</a></li>
+    <li><a href="found.html">works</a></li>
+    <li><a href="found.html">works 2</a></li>
+    <li><a href="http://www.google.com/">google</a></li>
     <li><a href="broke.html">broke</a></li>
     <li><a href="http://localhost:82/works.html">works</a></li>
     <li><a href="blah.html">broke</a></li>
@@ -79,14 +141,14 @@
 <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js"></script>
 <script type="text/javascript" src="src/LinkChecker.js"></script>
 <script type="text/javascript" src="src/LinkChecker.jQuery.js"></script>
-<!--<script type="text/javascript" src="src/LinkChecker.UI.js"></script>-->
+<script type="text/javascript" src="src/LinkChecker.UI.js"></script>
 
 <script type="text/javascript">
     //$("a:broken").css("color", "red");
     
-    $(function() {
-        $("a").linkChecker();
-    });
+//    $(function() {
+//        $("a").linkChecker();
+//    });
 </script>
 
 </body>

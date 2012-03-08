@@ -60,11 +60,16 @@ var LinkChecker = (function( undefined ) {
 
             if(this.broken === undefined) {
 
+                try{
                 var http = new XMLHttpRequest();
                 http.open('HEAD', this.uri, false);
                 http.send();
 
                 this.broken = http.status === 404;
+                }
+                catch(e) {
+                    this.broken = false;
+                }
             }
 
             return this.broken;
@@ -109,26 +114,32 @@ var LinkChecker = (function( undefined ) {
         }
 
         function go() {
-            var length = elems.length,
-                i = 0;
+            var link, i,
+                toProcess = [];
 
-            fire(events.started, elems);
+            for(i = 0; i < elems.length; i++) {
+                link = new Link(elems[i]);
+                if(link.isLocal()) {
+                    toProcess.push(link);
+                }
+            }
+            
+            fire(events.started, toProcess.length);
 
-            for(i ; i < length; i++) {
-
-                var check = new Link(elems[i]);
+            for(i = 0 ; i < toProcess.length; i++) {
+                link = toProcess[i];
 
                 //if no url or already processed
-                if(!check.isLocal() || alreadyProcessed(check)) {
+                if(alreadyProcessed(link)) {
                     continue;
                 }
 
                 //flag uri as previously processed
-                storeResult(check);
-                check.isBroken();
+                storeResult(link);
+                link.isBroken();
 
                 //notify any interested parties link was checked
-                fire(events.checked, check);
+                fire(events.checked, link);
             }
 
             //we're done!
