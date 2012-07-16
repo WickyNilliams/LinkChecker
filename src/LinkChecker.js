@@ -1,8 +1,111 @@
-var LinkChecker = (function( undefined ) {
+var LinkChecker = (function( ) {
 
     var Link,
         LinkProcessor,
         events;
+
+    /**
+     * Encapsulates logic for making Asynchronous HTTP requests
+     * @param url
+     * @param {object} options options
+     * @param {function} [options.success] the success callback
+     * @param {function} [options.error] the error callback
+     * @param {function} [options.complete] the complete callback
+     * @param {string} [options.method="GET"] the HTTP method to utilise
+     * @constructor
+     */
+    function AsyncRequest(url, options) {
+        this.url = url;
+        this.successCallback = options.success;
+        this.errorCallback = options.error;
+        this.completeCallback = options.complete;
+        this.method = options.method || "GET";
+        this.httpRequest = this.getXhr();
+    }
+    AsyncRequest.prototype = {
+
+        getXhr  : function() {
+            var httpRequest;
+
+            if (window.XMLHttpRequest) { // Mozilla, Safari, ...
+                httpRequest = new XMLHttpRequest();
+            } else if (window.ActiveXObject) { // IE
+                try {
+                    httpRequest = new ActiveXObject("Msxml2.XMLHTTP");
+                }
+                catch (e) {
+                    try {
+                        httpRequest = new ActiveXObject("Microsoft.XMLHTTP");
+                    }
+                    catch (e) {}
+                }
+            }
+
+            return httpRequest;
+        },
+
+        request : function() {
+            var httpRequest = this.httpRequest,
+                self = this;
+
+            if (!httpRequest) {
+                return false;
+            }
+            httpRequest.onreadystatechange = function () {
+                if (httpRequest.readyState === 4) {
+                    if (httpRequest.status === 200) {
+                        self.successCallback && self.successCallback(httpRequest);
+                    } else {
+                        self.errorCallback && self.errorCallback(httpRequest);
+                    }
+
+                    self.completeCallback && self.completeCallback(httpRequest);
+                }
+            };
+            httpRequest.open(this.method, this.url);
+            httpRequest.send();
+        }
+    };
+
+    /**
+     * Offers functionality for some basic Pub/Sub
+     * @param {object} [target] supply a target for mixin approach
+     * @constructor
+     */
+    function PubSub(target) {
+        var self = target || this;
+
+        self.subscriptions = {};
+
+        self.on = function(topic, action, context) {
+            if(!self.subscriptions[topic]) {
+                self.subscriptions[topic] = [];
+            }
+            self.subscriptions[topic].push({
+                action : action, context: context
+            });
+        };
+
+        self.off = function(topic) {
+            self.subscriptions[topic] = null;
+        };
+
+        self.fire = function(topic, params) {
+            var i = 0,
+                subs = self.subscriptions[topic];
+
+            if(!subs) return;
+
+            for(i; i < subs.length; i++) {
+                if(subs[i].context) {
+                    subs[i].action.call(subs[i].context, params);
+                }
+                else {
+                    subs[i].action(params);
+                }
+            }
+        };
+    }
 
     /**
      * The events we're exposing
@@ -16,10 +119,9 @@ var LinkChecker = (function( undefined ) {
     Link = function (elem) {
         this.elem = elem;
         this.uri = this.getUri();
+        this.broken = null;
     };
     Link.prototype = {
-
-        Constructor : Link,
 
         /**
          * gets the uri that the element refers to.
@@ -27,16 +129,17 @@ var LinkChecker = (function( undefined ) {
          * @returns {string} the uri if possible, null otherwise
          */
         getUri : function() {
+            var uri;
             switch (this.elem.tagName.toLowerCase()) {
                 case "a" :
-                    return this.elem.getAttribute("href").toLowerCase();
+                    uri = this.elem.getAttribute("href");
                     break;
                 case "img" :
-                    return this.elem.getAttribute("src").toLowerCase();
+                    uri = this.elem.getAttribute("src");
                     break;
-                default :
-                    return null;
             }
+
+            return uri && uri.toLowerCase();
         },
 
         /**
@@ -44,116 +147,126 @@ var LinkChecker = (function( undefined ) {
          * @returns {boolean} true if local, false otherwise
          */
         isLocal : function() {
-            var domain = window.location.host.toLowerCase(),
-                externalPattern = new RegExp("^http://(?!" + domain + ")", "i"),
-                isExternal;
 
-            isExternal =  externalPattern.test(this.uri);
-            return !isExternal;
+            var loc = window.location,
+                a = document.createElement('a'),
+                isLocal;
+
+            a.href = this.uri ;
+
+            isLocal = a.hostname == loc.hostname &&
+                a.port == loc.port &&
+                a.protocol == loc.protocol;
+
+            delete a;
+            return isLocal;
         },
 
         /**
          * makes AJAX request to url
-         * @returns {boolean} true if 404, false otherwise
+         * @param {function} callback called when request is complete. Called in context of current object
          */
-        isBroken : function() {
+        check : function(callback) {
+            var self = this,
+                async;
 
-            if(this.broken === undefined) {
-
-                try{
-                var http = new XMLHttpRequest();
-                http.open('HEAD', this.uri, false);
-                http.send();
-
-                this.broken = http.status === 404;
+            async = new AsyncRequest(self.uri, {
+                method : "HEAD",
+                complete : function(httpRequest) {
+                    self.broken = httpRequest.status === 404;
+                    callback.call(self);
                 }
-                catch(e) {
-                    this.broken = false;
-                }
-            }
-
-            return this.broken;
+            });
+            async.request();
         }
     };
 
+    /**
+     * Handles batch processing of links
+     * @param {NodeList} elems the elements to process
+     * @constructor
+     */
     LinkProcessor = function( elems ) {
-        var subscriptions = {},
-            progress = [];
+        this.progress = [];
+        this.toProcess = [];
+        this.itemsProcessed = 0;
 
-        function storeResult(check) {
-            progress[check.uri] = check;
-        }
+        //inherit from PubSub
+        PubSub.call(this);
 
-        function alreadyProcessed (check) {
-            return progress[check.uri];
-        }
-
-        function on(topic, action, context) {
-            if(!subscriptions[topic]) {
-                subscriptions[topic] = [];
+        //create process list of all local links
+        var link, length = elems.length;
+        for(var i = 0; i < length; i++) {
+            link = new Link(elems[i]);
+            if(link.isLocal()) {
+                this.toProcess.push(link);
             }
-            subscriptions[topic].push({
-                action : action, context: context
-            });
         }
+    };
+    LinkProcessor.prototype = {
 
-        function fire(topic, params) {
-            var i = 0,
-                subs = subscriptions[topic];
+        /**
+         * mark supplied link as already processed
+         * @param {Link} link the link to mark
+         */
+        markProcessed : function (link) {
+            this.progress[link.uri] = link;
+        },
 
-            if(!subs) return;
+        /**
+         * checks whether processing has completed (i.e. all requests have returned)
+         * @return {Boolean} true if processing is complete, false otherwise
+         */
+        isComplete : function() {
+            return this.itemsProcessed === this.toProcess.length;
+        },
 
-            for(i; i < subs.length; i++) {
-                if(subs[i].context) {
-                    subs[i].action.call(subs[i].context, params);
+        /**
+         * checks whether the supplied link has already been processed
+         * @param {Link} link the link to check
+         * @return {Boolean} truth-y value if already processed, false-y otherwise
+         */
+        alreadyProcessed : function (link) {
+            return this.progress[link.uri];
+        },
+
+        /**
+         * Helper method for handling a link having been checked
+         * @param {Link} link the link which has been checked
+         */
+        handleLinkChecked : function(link) {
+            this.itemsProcessed++;
+            this.fire(events.checked, link);
+
+            if(this.isComplete()) {
+                this.fire(events.completed, self.progress);
+            }
+        },
+
+        /**
+         * Kicks off processing of links
+         */
+        go : function () {
+            var link, i,
+                self = this;
+
+            self.fire(events.started, this.toProcess.length);
+
+            for(i = 0 ; i < self.toProcess.length; i++) {
+
+                link = self.toProcess[i];
+
+                if(this.alreadyProcessed(link)) {
+                    self.handleLinkChecked(link);
                 }
                 else {
-                    subs[i].action(params);
+                    self.markProcessed(link);
+                    link.check(function() {
+                        self.handleLinkChecked(this);
+                    });
                 }
             }
         }
-
-        function go() {
-            var link, i,
-                toProcess = [];
-
-            for(i = 0; i < elems.length; i++) {
-                link = new Link(elems[i]);
-                if(link.isLocal()) {
-                    toProcess.push(link);
-                }
-            }
-            
-            fire(events.started, toProcess.length);
-
-            for(i = 0 ; i < toProcess.length; i++) {
-                link = toProcess[i];
-
-                //if no url or already processed
-                if(alreadyProcessed(link)) {
-                    continue;
-                }
-
-                //flag uri as previously processed
-                storeResult(link);
-                link.isBroken();
-
-                //notify any interested parties link was checked
-                fire(events.checked, link);
-            }
-
-            //we're done!
-            fire(events.completed, progress);
-        }
-
-
-        return {
-            elems : elems,
-            on : on,
-            go : go
-        };
-
-
     };
 
     return {

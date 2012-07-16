@@ -1,6 +1,6 @@
 
 //handles the UI elements of the link checker
-(function($, win, doc ) {
+(function($, win, doc, events) {
     var $container = $("<div id='linkChecker'></div>"),
 //        lnf = {},
         viewModel = {
@@ -11,18 +11,19 @@
 
     /**
      * draws UI when it's time to start the show
+     * @param {int} total the total number of links to process
      */
     function startedEvent(total) {
         /**
          * responsible for setting up the UI
          */
-        function drawUI () {
+        function drawUI (count) {
             var $progress = $("<div class='module'></div>");
 
             $container.append("<h1 class='module'>Link Checker</h1>");
             $progress.append("<div class='progress-bar'><div class='progress' style='width:0'></div></div>");
             $progress.append("<span class='complete'>0</span>");
-            $progress.append("<span class='total'>" + viewModel.total + "</span>");
+            $progress.append("<span class='total'>" + count + "</span>");
 
             $container.append($progress);
             $container.appendTo("body");
@@ -33,7 +34,7 @@
          */
         function addStyles() {
 
-            var rules = "#linkChecker{font-family:sans-serif!important;background:rgba(32,32,32,0.9);padding:0;position:fixed;top:0;right:0;left:0;height:50px;font-size:12px;color:#fff}#linkChecker .module{float:left;margin:10px 0 10px 20px}#linkChecker h1{font-size:16px;font-weight:bold;line-height:30px;color:#fff;text-shadow:1px 1px 0 #6e538a,2px 2px 0 #6e538a,3px 3px 0 #6e538a;padding-right:20px;border-right:1px solid #fff}#linkChecker .progress-bar{float:left;height:17px;border:1px solid #fff;padding:2px;width:100px;margin:4px 10px 0 0}#linkChecker .progress-bar .progress{background:#6e538a;height:100%}#linkChecker .complete{font-size:16px;font-weight:bold;line-height:30px}#linkChecker .total{font-size:12px;color:#6e538a;line-height:30px}#linkChecker .total:before{content:'/';padding:0 5px}#linkChecker .broken{padding:0 10px}#linkChecker .broken:hover{background:#222}#linkChecker .broken span{line-height:30px;display:inline-block;color:#6e538a;font-weight:bold}#linkChecker .broken:hover span{color:#fff}#linkChecker .broken .tally{color:#fff;margin-left:5px}#linkChecker .broken ul{padding:10px 0;margin:0;list-style:none;display:none}#linkChecker .broken:hover ul{display:block}#linkChecker .broken ul li{border-top:1px solid #6e538a;padding:5px}a.broken-link{background-color:red;color:white;border:solid 2px red}";
+            var rules = "body {margin-top: 50px !important;}#linkChecker{font-family:sans-serif!important;background:rgba(32,32,32,0.9);padding:0;position:fixed;z-index:9999;top:0;right:0;left:0;height:50px;font-size:12px;color:#fff}#linkChecker .module{float:left;margin:10px 0 10px 20px}#linkChecker h1{font-size:21px;font-weight:bold;border: none; background: none;line-height:30px;color:#fff;text-shadow:1px 1px 0 #6e538a,2px 2px 0 #6e538a,3px 3px 0 #6e538a;padding-right:20px;border-right:1px solid #fff}#linkChecker .progress-bar{float:left;height:17px;border:1px solid #fff;padding:2px;width:100px;margin:4px 10px 0 0}#linkChecker .progress-bar .progress{background:#6e538a;height:100%}#linkChecker .complete{font-size:16px;font-weight:bold;line-height:30px}#linkChecker .total{font-size:12px;color:#6e538a;line-height:30px}#linkChecker .total:before{content:'/';padding:0 5px}#linkChecker .broken{padding:0 10px}#linkChecker .broken:hover{background:#222}#linkChecker .broken span{line-height:30px;display:inline-block;color:#6e538a;font-weight:bold}#linkChecker .broken:hover span{color:#fff}#linkChecker .broken .tally{color:#fff;margin-left:5px}#linkChecker .broken ul{padding:10px 0;margin:0;list-style:none;display:none}#linkChecker .broken:hover ul{display:block}#linkChecker .broken ul li{border-top:1px solid #6e538a;padding:5px}a.broken-link{background-color:red;color:white;border:solid 2px red}";
 
             /**
              * Generates css syntax from an object
@@ -96,21 +97,30 @@
 
         viewModel.total = total;
         addStyles();
-        drawUI();
+        drawUI(viewModel.total);
     }
 
     /**
      * handler for link checked event
-     * @param {LinkChecker.Link} link the link
+     * @param {Link} link the link that has been checked
      */
     function checkedEvent(link) {
         var $complete = $container.find(".complete"),
             $progressBar = $container.find(".progress");
 
         viewModel.progress++;
-        if(link.isBroken()) {
+        if(link.broken) {
             viewModel.broken.push(link);
-            $(link.elem).addClass("broken-link");
+            $(link.elem).addClass("broken-link").css({
+                color: "red",
+                "font-weight" : "bold"
+            });
+        }
+        else {
+            $(link.elem).css({
+                color: "green",
+                "font-weight" : "bold"
+            })
         }
         
         $complete.text(viewModel.progress);
@@ -146,13 +156,13 @@
 
 
     $(function() {
-        var processor = new LinkChecker.LinkProcessor(document.getElementsByTagName("a"));
+        var processor = new LinkChecker.LinkProcessor(doc.getElementsByTagName("a"));
 
-        processor.on(LinkChecker.events.started, startedEvent);
-        processor.on(LinkChecker.events.checked, checkedEvent);
-        processor.on(LinkChecker.events.completed, completedEvent);
+        processor.on(events.started, startedEvent);
+        processor.on(events.checked, checkedEvent);
+        processor.on(events.completed, completedEvent);
         
         processor.go();
     });
 
-})(jQuery, window, document);
+})(jQuery, window, document, LinkChecker.events);
