@@ -1,8 +1,8 @@
 (function() {
     //modify these as you see fit
     var jQueryUrl = "https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js",
-        linkCheckerUrl = "https://github.com/WickyNilliams/LinkChecker/blob/master/src/LinkChecker.js",
-        linkCheckerUiUrl = "https://github.com/WickyNilliams/LinkChecker/blob/master/src/LinkChecker.UI.js";
+        linkCheckerUrl = "https://raw.github.com/WickyNilliams/LinkChecker/master/src/LinkChecker.js",
+        linkCheckerUiUrl = "https://raw.github.com/WickyNilliams/LinkChecker/master/src/LinkChecker.UI.js";
 
     function loadScript(url, callback) {
 
