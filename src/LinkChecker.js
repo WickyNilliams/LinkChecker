@@ -1,8 +1,6 @@
 var LinkChecker = (function( ) {
 
-    var Link,
-        LinkProcessor,
-        events;
+    var events;
 
     /**
      * Encapsulates logic for making Asynchronous HTTP requests
@@ -116,11 +114,11 @@ var LinkChecker = (function( ) {
         completed : "completed.linkChecker"
     };
 
-    Link = function (elem) {
+    function Link(elem) {
         this.elem = elem;
-        this.uri = this.getUri();
+        this.getUri();
         this.broken = null;
-    };
+    }
     Link.prototype = {
 
         /**
@@ -139,7 +137,7 @@ var LinkChecker = (function( ) {
                     break;
             }
 
-            return uri && uri.toLowerCase();
+            this.uri =  uri && uri.toLowerCase();
         },
 
         /**
@@ -154,12 +152,9 @@ var LinkChecker = (function( ) {
 
             a.href = this.uri ;
 
-            isLocal = a.hostname == loc.hostname &&
+            return a.hostname == loc.hostname &&
                 a.port == loc.port &&
                 a.protocol == loc.protocol;
-
-            delete a;
-            return isLocal;
         },
 
         /**
@@ -186,7 +181,7 @@ var LinkChecker = (function( ) {
      * @param {NodeList} elems the elements to process
      * @constructor
      */
-    LinkProcessor = function( elems ) {
+    function LinkProcessor(elems) {
         this.progress = [];
         this.toProcess = [];
         this.itemsProcessed = 0;
@@ -202,7 +197,7 @@ var LinkChecker = (function( ) {
                 this.toProcess.push(link);
             }
         }
-    };
+    }
     LinkProcessor.prototype = {
 
         /**
