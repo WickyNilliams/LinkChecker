@@ -17,21 +17,15 @@ Call the `isLocal()` method to check whether checking the link will violate the 
 This is a safety measure that is a necessity unless you have disabled the same-origin policy in your browser.
 
     if(someLink.isLocal()) {
-
         //do something
-
     }
 
 Assuming our link was local, check whether its broken.
 In the callback, `this` is bound to the link object and the `broken` property stores the result of the check:
 
     //supply callback for when request has completed
+    //within the callback, 'this' is bound to the Link object
     link.check(function() {
-
-        //'this' is bound to your Link object
-
-        //outputs:
-        //Checked URI '/some/local/link' on element with ID 'someElement'. Is broken: false
         console.log("Checked URI '%s' on element with ID '%s'. Is broken: %s", " this.uri, this.elem.id, this.broken);
 
     });
@@ -49,8 +43,9 @@ To construct a `LinkProcessor` supply an array of relevant DOM elements:
     var processor = new LinkChecker.LinkProcessor(document.getElementsByTagName("a"));
 
 
-It uses a pub/sub system to give plenty of flexibility.
+`LinkProcessor` uses a pub/sub system to give plenty of flexibilty in how you wish to use it.
 The events exposed by `LinkProcessor` can be found in `LinkChecker.events` object.
+Use the `on(string, function)` method to subscribe to an event.
 
 The started event is fired immediately before processing begins:
 
@@ -63,7 +58,7 @@ The started event is fired immediately before processing begins:
     });
 
 
-The checked event is called as each link is checked:
+The checked event is called after each link has been checked:
 
     processor.on(LinkChecker.events.checked, function(link) {
 
@@ -87,7 +82,6 @@ The completed event is supplied with an array of all processed Links:
 
         //output a summary
         console.log("completed processing, found %i broken links", count);
-
     });
 
 
