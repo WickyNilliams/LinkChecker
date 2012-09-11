@@ -139,7 +139,7 @@ var LinkChecker = (function( window ) {
                     break;
             }
 
-            this.uri =  uri && uri.toLowerCase();
+            this.uri =  uri;
         },
 
         /**
