@@ -139,13 +139,13 @@
 
         $container.find(".progress").css("width", "100%");
         $container.find(".complete").text($total.text());
-
-        if(viewModel.broken.length === 0) {
-            $wrapper.append("<span>No broken links!</span>");
-        }
         
         $wrapper.append("<span>Broken links</span>");
         $wrapper.append("<span class='tally'>(" + viewModel.broken.length + ")</span>");
+
+        if(viewModel.broken.length === 0) {
+            return;
+        }
 
         for(var i = 0; i < viewModel.broken.length; i++) {
             $result = $("<li></li>").text(viewModel.broken[i].uri);
