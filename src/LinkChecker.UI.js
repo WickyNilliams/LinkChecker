@@ -1,13 +1,14 @@
+/*global jQuery:false, LinkChecker:false */
 
 //handles the UI elements of the link checker
-(function($, win, doc, events) {
+(function($, win, doc, LinkChecker) {
     var $container = $("<div id='linkChecker'></div>"),
-//        lnf = {},
         viewModel = {
             total: 0,
             progress : 0,
             broken : []
-        };
+        },
+        events = LinkChecker.events;
 
     /**
      * draws UI when it's time to start the show
@@ -118,7 +119,7 @@
             $(link.elem).css({
                 color: "green",
                 "font-weight" : "bold"
-            })
+            });
         }
         
         $complete.text(viewModel.progress);
@@ -139,7 +140,9 @@
         $container.find(".progress").css("width", "100%");
         $container.find(".complete").text($total.text());
 
-        if(viewModel.broken.length === 0) return;
+        if(viewModel.broken.length === 0) {
+            $wrapper.append("<span>No broken links!</span>");
+        }
         
         $wrapper.append("<span>Broken links</span>");
         $wrapper.append("<span class='tally'>(" + viewModel.broken.length + ")</span>");
@@ -163,4 +166,4 @@
         processor.go();
     });
 
-})(jQuery, window, document, LinkChecker.events);
+}(jQuery, window, document, LinkChecker));
