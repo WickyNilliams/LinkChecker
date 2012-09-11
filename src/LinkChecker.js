@@ -1,4 +1,4 @@
-var LinkChecker = (function( ) {
+var LinkChecker = (function( window ) {
 
     var events;
 
@@ -92,7 +92,9 @@ var LinkChecker = (function( ) {
             var i = 0,
                 subs = self.subscriptions[topic];
 
-            if(!subs) return;
+            if(!subs) {
+                return;
+            }
 
             for(i; i < subs.length; i++) {
                 if(subs[i].context) {
@@ -152,9 +154,9 @@ var LinkChecker = (function( ) {
 
             a.href = this.uri ;
 
-            return a.hostname == loc.hostname &&
-                a.port == loc.port &&
-                a.protocol == loc.protocol;
+            return a.hostname === loc.hostname 
+                && a.port === loc.port
+                && a.protocol === loc.protocol;
         },
 
         /**
@@ -163,16 +165,25 @@ var LinkChecker = (function( ) {
          */
         check : function(callback) {
             var self = this,
-                async;
+                async,
+                targetId;
 
-            async = new AsyncRequest(self.uri, {
-                method : "HEAD",
-                complete : function(httpRequest) {
-                    self.broken = httpRequest.status === 404;
-                    callback.call(self);
-                }
-            });
-            async.request();
+            if(self.uri.match(/^#/)) {
+                targetId = self.uri.replace("#", "");
+                self.broken = window.document.getElementById(targetId) === null;
+                callback.call(self);
+            }
+            else {
+
+                async = new AsyncRequest(self.uri, {
+                    method : "HEAD",
+                    complete : function(httpRequest) {
+                        self.broken = httpRequest.status === 404;
+                        callback.call(self);
+                    }
+                });
+                async.request();
+            }
         }
     };
 
@@ -234,7 +245,7 @@ var LinkChecker = (function( ) {
             this.fire(events.checked, link);
 
             if(this.isComplete()) {
-                this.fire(events.completed, self.progress);
+                this.fire(events.completed);
             }
         },
 
@@ -270,4 +281,4 @@ var LinkChecker = (function( ) {
         events : events
     };
 
-})( );
+}(window));
