@@ -144,6 +144,7 @@
         $wrapper.append("<span class='tally'>(" + viewModel.broken.length + ")</span>");
 
         if(viewModel.broken.length === 0) {
+            $container.append($wrapper);
             return;
         }
 
