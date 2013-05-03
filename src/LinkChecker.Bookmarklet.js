@@ -17,7 +17,7 @@
 
             if(!this.readyState || loaded || completed) {
 
-                if(callback) callback();
+                callback && callback();
 
                 // Handle memory leak in IE
                 script.onload = script.onreadystatechange = null;
@@ -32,8 +32,8 @@
     loadScript(jQueryUrl, function() {
         loadScript(linkCheckerUrl, function() {
             loadScript(linkCheckerUiUrl);
-        })
-    })
+        });
+    });
 
 }());
 

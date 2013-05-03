@@ -2,6 +2,8 @@
 
 LinkChecker is a simple, lightweight JavaScript framework that assists in checking for broken links.
 
+
+
 ##Core Types##
 
 ###LinkChecker.Link###
@@ -96,3 +98,5 @@ Just include `LinkChecker.UI.js`, along with the `LinkChecker.js`, on any web pa
 The easiest way to utilise the LinkChecker.UI functionality is to create a bookmarklet from the code contained in`LinkChecker.Bookmarklet.js`.
 If you do this, checking links on any web page is a breeze!
 As it is, the bookmarklet hotlinks the latest code on GitHub, so please modify if you wish to stick to a specific version.
+
+**[Click to test bookmarklet](javascript:(function(){var c="https://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.js",d="https://raw.github.com/WickyNilliams/LinkChecker/master/src/LinkChecker.js",b="https://raw.github.com/WickyNilliams/LinkChecker/master/src/LinkChecker.UI.js";function a(f,h){var g=document.getElementsByTagName("head")[0];var e=document.createElement("script");e.src=f;e.onload=e.onreadystatechange=function(){var i=this.readyState==="loaded",j=this.readyState==="complete";if(!this.readyState||i||j){h&&h();e.onload=e.onreadystatechange=null;g.removeChild(e)}};g.appendChild(e)}a(c,function(){a(d,function(){a(b)})})}());)
